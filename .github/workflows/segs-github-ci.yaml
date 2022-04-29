@@ -31,7 +31,7 @@ jobs:
     - name: Install MinGW
       uses: egor-tensin/setup-mingw@v2
       with:
-        static: 1
+        static: '1'
 
     - name: Configure CMake
       env:
