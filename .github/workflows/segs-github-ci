@@ -1,8 +1,3 @@
-# Configure Qt
-# Configure CMAKE
-# Configure MinGW
-# Configure for Windows, Linux & ?MacOS?
-# Build
 
 name: SEGS-CI
 
@@ -23,7 +18,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    # Install Qt 5.15.2
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
       with:
