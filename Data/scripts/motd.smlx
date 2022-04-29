@@ -1,0 +1,36 @@
+<br><face title><span align=center><color Red>SEGS Release Notes: v0.7.0 (Awakening)</color></span></face><br>
+<face heading>
+<color Tomato><span align=center><b>NOTICE!</b></color></span>
+<br>
+<color Tomato>By default, server synchoronization of player positions has been disabled. This change removes the rubber-banding effect, but positions of other players may not be updated properly. We are actively working on it.</color><br>
+</face><br>
+Welcome to the Super Entity Game Server! SEGS is under active development and is far from being feature complete.<br>
+<br>
+Please consider contributing to our success by reporting bugs on our github and joining our community on Discord:<br>
+<face heading>
+<span align=center><a href="https://github.com/Segs/">https://github.com/Segs/</a> and <a href="https://discord.segs.dev">https://discord.segs.dev/</a></span>
+</face><br>
+<br>
+<color SteelBlue>Latest Changes:</color><br>
+- Tasks, Contacts, Clues, Souvenirs, Emails, Stores (test with LuaBot)
+- Lua Scripting of simple mission like "hide-and-seek" and "timed races"
+- Spawn Pedestrians, Cars, Blimps, Contacts, Basic Encounters in Outbreak, Atlas Park, King's Row, Steel Canyon, Skyway City, Talos Island, Independence Port, Perez Park, Boomtown and Dark Astoria.
+- Some Door Transfers
+- Tailor and Multiple Costumes
+- Preliminary Powers (Pew Pew Pew!)
+- To fully utilize powers, make sure the server has a /data/powers.json
+- AdminRPC and RPC support
+- SEGSAdmin improvements
+- Output log improvements
+- Many improvements to how we store/load characters and data from the database.
+- Bug Fixes
+<br>
+<color SandyBrown>Useful Slash Commands:</color><br>
+<color BurlyWood><i>/stuck</i></color>  - resets your character to the starting location in current map<br>
+<color BurlyWood><i>/moveto x y z</i></color>  - move character to the x y z coordinates<br>
+<color BurlyWood><i>/fly</i></color>  - toggles the "flying" flag for your character<br>
+<color BurlyWood><i>/mapmenu</i></color>  - Shows a menu that allows you to change maps (zones)<br>
+<color BurlyWood><i>/train</i></color>  - train up to the next level! Make sure you have enough XP<br>
+<color BurlyWood><i>/cmdlist</i></color>  - list all available slash commands<br>
+<br>
+<span align=center><a href={OK}>Click OK below to close this box and begin playing!</a></span>
