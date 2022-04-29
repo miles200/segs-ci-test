@@ -1,4 +1,5 @@
 
+test
 <img src="docs/segs-medallion-med.png" align="right" alt="SEGS Logo">
 
 [![Discord](https://img.shields.io/discord/242088237596803073.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.segs.dev)
