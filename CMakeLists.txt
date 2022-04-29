@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(SEGS)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 18)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Tell cmake to honor CXX_VISIBILITY_PRESET and ignore it
