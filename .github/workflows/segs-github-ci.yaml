@@ -71,12 +71,20 @@ jobs:
         version: ${{ env.QT_VERSION }}
         dir: "${{ github.workspace }}/qt"
         install-deps: "true"
+    
+    - name: Install Clang # MacOS XCode version of AppleClang does not include needed libraries 
+      run: |
+        brew update
+        brew install llvm
+
+    - name: DEBUG Version Check for Clang # TO REMOVE
+      run: |
+        clang --version 
 
     - name: Configure CMake
       env: 
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
-        CC: "/usr/bin/clang"
-        CXX: "/usr/bin/clang++"
+        CXX: "/usr/local/opt/llvm/bin/clang++"
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
     - name: Build
