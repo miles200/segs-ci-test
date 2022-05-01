@@ -16,6 +16,7 @@ env:
 jobs:
   nightly-release:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -36,7 +37,7 @@ jobs:
         install-deps: "true"
 
     - name: Install Qt Linux
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: linux
@@ -58,13 +59,13 @@ jobs:
 # Configure CMake
 
     - name: Configure CMake Windows & MacOS
-      if: matrix.os == 'windows=latest' || matrix.os == 'macos-latest'
+      if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
     - name: Configure CMake Linux
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
         CXX: "/usr/bin/clang++"
@@ -88,7 +89,7 @@ jobs:
         exclusions: '*.git*'
 
     - name: Create Linux Archive
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: thedoctor0/zip-release@master
       with: 
         type: 'zip'
@@ -119,7 +120,7 @@ jobs:
         artifacts: ${{ github.workspace }}/build/archive/windows-release.zip
         
     - name: Deploy Linux Release 
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
