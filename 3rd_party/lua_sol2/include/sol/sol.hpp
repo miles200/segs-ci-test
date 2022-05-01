@@ -20955,6 +20955,8 @@ namespace sol {
 
 // end of sol/usertype_container.hpp
 
+#include <unordered_map>
+
 namespace sol {
 
 	namespace container_detail {
@@ -21527,6 +21529,7 @@ namespace sol {
 // beginning of sol/usertype_storage.hpp
 
 #include <bitset>
+#include <unordered_map>
 
 namespace sol { namespace u_detail {
 
