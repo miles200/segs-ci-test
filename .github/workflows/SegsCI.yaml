@@ -60,7 +60,7 @@ jobs:
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
     - name: Configure CMake Linux
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
         CXX: "/usr/bin/clang++"
