@@ -1,0 +1,137 @@
+
+name: segs-nightly-release
+
+on:
+  workflow_dispatch
+
+#on:
+#  schedule:
+#    - cron: '0 2 * * *' # 2 AM UTC
+
+env:
+  BUILD_TYPE:  Debug
+  QT_VERSION:  "5.15.2"
+  QT_WIN_TARGET_ARCHITECTURE:  "win64_msvc2019_64"
+
+jobs:
+  nightly-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    
+# QT Installation 
+
+    - name: Install Qt Windows
+      if: matrix.os == 'windows-latest'
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        host: windows
+        target: desktop
+        version: ${{ env.QT_VERSION }}
+        arch: ${{ env.QT_WIN_TARGET_ARCHITECTURE }}
+        dir: "${{ github.workspace }}/qt"
+        install-deps: "true"
+
+    - name: Install Qt Linux
+      if: matrix.os == 'linux-latest'
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        host: linux
+        target: desktop
+        version: ${{ env.QT_VERSION }}
+        dir: "${{ github.workspace }}/qt"
+        install-deps: "true"
+
+    - name: Install Qt MacOS
+      if: matrix.os == 'macos-latest'
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        host: mac
+        target: desktop
+        version: ${{ env.QT_VERSION }}
+        dir: "${{ github.workspace }}/qt"
+        install-deps: "true"
+
+# Configure CMake
+
+    - name: Configure CMake Windows & MacOS
+      if: matrix.os == 'windows=latest' || matrix.os == 'macos-latest'
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Configure CMake Linux
+      if: matrix.os == 'linux-latest'
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+        CXX: "/usr/bin/clang++"
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+# Build
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
+
+# Archive
+
+    - name: Create Windows Archive
+      if: matrix.os == 'windows-latest'
+      uses: thedoctor0/zip-release@master
+      with: 
+        type: 'zip'
+        path: ${{ github.workspace }}/build/out
+        directory: ${{ github.workspace }}/build/archive
+        filename: 'windows-release.zip'
+        exclusions: '*.git*'
+
+    - name: Create Linux Archive
+      if: matrix.os == 'linux-latest'
+      uses: thedoctor0/zip-release@master
+      with: 
+        type: 'zip'
+        path: ${{ github.workspace }}/build/out
+        directory: ${{ github.workspace }}/build/archive
+        filename: 'linux-release.zip'
+        exclusions: '*.git*'
+
+    - name: Create MacOS Archive
+      if: matrix.os == 'macos-latest'
+      uses: thedoctor0/zip-release@master
+      with: 
+        type: 'zip'
+        path: ${{ github.workspace }}/build/out
+        directory: ${{ github.workspace }}/build/archive
+        filename: 'macos-release.zip'
+        exclusions: '*.git*'
+
+# Deploy
+
+    - name: Deploy Windows Release 
+      if: matrix.os == 'windows-latest'
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: "true"
+        tag: "nightly"
+        artifacts: ${{ github.workspace }}/build/archive/windows-release.zip
+        
+    - name: Deploy Linux Release 
+      if: matrix.os == 'linux-latest'
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: "true"
+        tag: "nightly"
+        artifacts: ${{ github.workspace }}/build/archive/linux-release.zip 
+
+    - name: Deploy MacOS Release 
+      if: matrix.os == 'macos-latest'
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: "true"
+        tag: "nightly"
+        artifacts: ${{ github.workspace }}/build/archive/macos-release.zip 
