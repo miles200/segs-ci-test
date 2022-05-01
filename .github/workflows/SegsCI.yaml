@@ -54,7 +54,7 @@ jobs:
 # Configure CMake
 
     - name: Configure CMake Windows & MacOS
-      if: matrix.os == 'windows=latest' || matrix.os == 'macos-latest'
+      if: matrix.os == 'windows=latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
@@ -64,6 +64,12 @@ jobs:
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
         CXX: "/usr/bin/clang++"
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Configure CMake MacOS
+      if: matrix.os == 'macos-latest'
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
 # Build
