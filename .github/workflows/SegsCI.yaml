@@ -10,7 +10,7 @@ env:
   QT_WIN_TARGET_ARCHITECTURE:  "win64_msvc2019_64"
 
 jobs:
-  nightly-release:
+  build:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -32,7 +32,7 @@ jobs:
         install-deps: "true"
 
     - name: Install Qt Linux
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: linux
