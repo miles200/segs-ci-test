@@ -1,4 +1,4 @@
-name: segs-nightly-release
+name: segs-ci-nightly
 
 on:
   workflow_dispatch
@@ -15,6 +15,8 @@ env:
 jobs:
   build-windows:
     runs-on: 'windows-latest'
+    permissions:
+      content: write
     steps:
     - uses: actions/checkout@v3
 
@@ -40,7 +42,7 @@ jobs:
       run: |
         mkdir ${{ github.workspace }}\build\openssl
         curl -o ${{ github.workspace }}\build\openssl\openssl.zip https://mirror.firedaemon.com/OpenSSL/openssl-1.1.1n.zip
-        tar -xf ${{ github.workspace }}\build\openssl\openssl.zip
+        tar -xf ${{ github.workspace }}\build\openssl\openssl.zip -C ${{ github.workspace }}\build\openssl
         robocopy ${{ github.workspace }}\build\openssl\openssl-1.1\x64\bin\ ${{ github.workspace }}\build\out *.dll
 
     - name: Create Windows Archive
@@ -52,16 +54,23 @@ jobs:
         exclusions: '*.git*'
 
     - name: Deploy Windows Release 
-      if: matrix.os == 'windows-latest'
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
+        prerelease: "true"
+        commit: ${{ github.sha }}
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/out/windows-release.zip
+        artifacts: ${{ github.workspace }}/build/out/windows-release-x64.zip
+        body: |
+          Commit reference: ${{ github.sha }}
+          Built on branch: ${{ github.ref_name }}
+          Run number: ${{ github.run_number }}
 
   build-linux:
     runs-on: 'ubuntu-latest'
+    permissions:
+      content: write
     steps:
     - uses: actions/checkout@v3
 
@@ -75,7 +84,6 @@ jobs:
         install-deps: "true"
 
     - name: Configure CMake Linux
-      if: matrix.os == 'ubuntu-latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
         CXX: "/usr/bin/clang++"
@@ -97,11 +105,19 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
+        prerelease: "true"
+        commit: ${{ github.sha }}
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/out/linux-release.zip
+        artifacts: ${{ github.workspace }}/build/out/linux-release-x64.zip
+        body: |
+          Commit reference: ${{ github.sha }}
+          Built on branch: ${{ github.ref_name }}
+          Run number: ${{ github.run_number }}
 
   build-macos:
     runs-on: 'macos-latest'
+    permissions:
+      content: write
     steps:
     - uses: actions/checkout@v3
 
@@ -135,5 +151,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
+        prerelease: "true"
+        commit: ${{ github.sha }}
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/out/macos-release.zip
+        artifacts: ${{ github.workspace }}/build/out/macos-release-x64.zip
+        body: |
+          Commit reference: ${{ github.sha }}
+          Built on branch: ${{ github.ref_name }}
+          Run number: ${{ github.run_number }}

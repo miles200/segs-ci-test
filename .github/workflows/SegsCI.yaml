@@ -1,4 +1,4 @@
-name: segs-ci
+name: segs-ci-pull-request
 
 on:
   pull_request:
