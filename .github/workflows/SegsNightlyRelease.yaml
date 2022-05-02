@@ -5,7 +5,7 @@ on:
 
 #on:
 #  schedule:
-#    - cron: '0 13 * * *' # Runs at 1 PM UTC daily
+#    - cron: '30 16 * * *' 
 
 env:
   BUILD_TYPE:  Debug
@@ -13,7 +13,35 @@ env:
   QT_WIN_TARGET_ARCHITECTURE:  "win64_msvc2019_64"
 
 jobs:
+
+  tidy-up-releases:
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: write
+    steps:
+
+    - name: Delete Current Nightly Release
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: "nightly"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create New Release 
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: "true"
+        commit: ${{ github.sha }}
+        tag: "nightly"
+        name: "Nightly Development Release"
+        body: |
+          Commit reference: ${{ github.sha }}
+          Built on branch: ${{ github.ref_name }}
+
   build-windows:
+    needs: tidy-up-releases
     runs-on: 'windows-latest'
     permissions:
       contents: write
@@ -39,6 +67,7 @@ jobs:
       run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
 
     - name: Get OpenSSL Libraries 
+      continue-on-error: true # Robocopy uses an exit code 1 on successful copy which causes the step to fail. Allowing this step to continue even if reported as failure. 
       run: |
         mkdir ${{ github.workspace }}\build\openssl
         curl -o ${{ github.workspace }}\build\openssl\openssl.zip https://mirror.firedaemon.com/OpenSSL/openssl-1.1.1n.zip
@@ -58,16 +87,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
-        prerelease: "true"
-        commit: ${{ github.sha }}
         tag: "nightly"
         artifacts: ${{ github.workspace }}/build/out/windows-release-x64.zip
-        body: |
-          Commit reference: ${{ github.sha }}
-          Built on branch: ${{ github.ref_name }}
-          Run number: ${{ github.run_number }}
 
   build-linux:
+    needs: tidy-up-releases
     runs-on: 'ubuntu-latest'
     permissions:
       contents: write
@@ -105,16 +129,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
-        prerelease: "true"
-        commit: ${{ github.sha }}
         tag: "nightly"
         artifacts: ${{ github.workspace }}/build/out/linux-release-x64.zip
-        body: |
-          Commit reference: ${{ github.sha }}
-          Built on branch: ${{ github.ref_name }}
-          Run number: ${{ github.run_number }}
 
   build-macos:
+    needs: tidy-up-releases
     runs-on: 'macos-latest'
     permissions:
       contents: write
@@ -151,11 +170,5 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
-        prerelease: "true"
-        commit: ${{ github.sha }}
         tag: "nightly"
         artifacts: ${{ github.workspace }}/build/out/macos-release-x64.zip
-        body: |
-          Commit reference: ${{ github.sha }}
-          Built on branch: ${{ github.ref_name }}
-          Run number: ${{ github.run_number }}
