@@ -48,7 +48,6 @@ jobs:
         install-deps: "true"
 
     - name: Configure CMake Linux
-      if: matrix.os == 'ubuntu-latest'
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
         CXX: "/usr/bin/clang++"
