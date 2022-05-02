@@ -1,4 +1,3 @@
-
 name: segs-nightly-release
 
 on:
@@ -6,7 +5,7 @@ on:
 
 #on:
 #  schedule:
-#    - cron: '0 2 * * *' # 2 AM UTC
+#    - cron: '0 13 * * *' # Runs at 1 PM UTC daily
 
 env:
   BUILD_TYPE:  Debug
@@ -14,21 +13,12 @@ env:
   QT_WIN_TARGET_ARCHITECTURE:  "win64_msvc2019_64"
 
 jobs:
-  nightly-release:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    permissions:
-      contents: write
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: 'windows-latest'
     steps:
     - uses: actions/checkout@v3
-    
-# QT Installation 
 
     - name: Install Qt Windows
-      if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: windows
@@ -38,76 +28,28 @@ jobs:
         dir: "${{ github.workspace }}/qt"
         install-deps: "true"
 
-    - name: Install Qt Linux
-      if: matrix.os == 'ubuntu-latest'
-      uses: jurplel/install-qt-action@v2.14.0
-      with:
-        host: linux
-        target: desktop
-        version: ${{ env.QT_VERSION }}
-        dir: "${{ github.workspace }}/qt"
-        install-deps: "true"
-
-    - name: Install Qt MacOS
-      if: matrix.os == 'macos-latest'
-      uses: jurplel/install-qt-action@v2.14.0
-      with:
-        host: mac
-        target: desktop
-        version: ${{ env.QT_VERSION }}
-        dir: "${{ github.workspace }}/qt"
-        install-deps: "true"
-
-# Configure CMake
-
-    - name: Configure CMake Windows & MacOS
-      if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
+    - name: Configure CMake Windows
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
-    - name: Configure CMake Linux
-      if: matrix.os == 'ubuntu-latest'
-      env:
-        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
-        CXX: "/usr/bin/clang++"
-      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-
-# Build
-
-    - name: Build
+    - name: Build Windows
       run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
 
-# Archive
+    - name: Get OpenSSL Libraries 
+      run: |
+        mkdir ${{ github.workspace }}\build\openssl
+        curl -o ${{ github.workspace }}\build\openssl\openssl.zip https://mirror.firedaemon.com/OpenSSL/openssl-1.1.1n.zip
+        tar -xf ${{ github.workspace }}\build\openssl\openssl.zip
+        robocopy ${{ github.workspace }}\build\openssl\openssl-1.1\x64\bin\ ${{ github.workspace }}\build\out *.dll
 
     - name: Create Windows Archive
-      if: matrix.os == 'windows-latest'
       uses: thedoctor0/zip-release@master
       with: 
         type: 'zip'
         directory: ${{ github.workspace }}/build/out
         filename: 'windows-release.zip'
         exclusions: '*.git*'
-
-    - name: Create Linux Archive
-      if: matrix.os == 'ubuntu-latest'
-      uses: thedoctor0/zip-release@master
-      with: 
-        type: 'zip'
-        directory: ${{ github.workspace }}/build/out
-        filename: 'linux-release.zip'
-        exclusions: '*.git*'
-
-    - name: Create MacOS Archive
-      if: matrix.os == 'macos-latest'
-      uses: thedoctor0/zip-release@master
-      with: 
-        type: 'zip'
-        directory: ${{ github.workspace }}/build/out
-        filename: 'macos-release.zip'
-        exclusions: '*.git*'
-
-# Deploy
 
     - name: Deploy Windows Release 
       if: matrix.os == 'windows-latest'
@@ -117,21 +59,81 @@ jobs:
         allowUpdates: "true"
         tag: "nightly"
         artifacts: ${{ github.workspace }}/build/out/windows-release.zip
-        
-    - name: Deploy Linux Release 
+
+  build-linux:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Qt Linux
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        host: linux
+        target: desktop
+        version: ${{ env.QT_VERSION }}
+        dir: "${{ github.workspace }}/qt"
+        install-deps: "true"
+
+    - name: Configure CMake Linux
       if: matrix.os == 'ubuntu-latest'
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+        CXX: "/usr/bin/clang++"
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build Linux
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
+
+    - name: Create Linux Archive
+      uses: thedoctor0/zip-release@master
+      with: 
+        type: 'zip'
+        directory: ${{ github.workspace }}/build/out
+        filename: 'linux-release.zip'
+        exclusions: '*.git*'
+
+    - name: Deploy Linux Release
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/out/linux-release.zip 
+        artifacts: ${{ github.workspace }}/build/out/linux-release.zip
+
+  build-macos:
+    runs-on: 'macos-latest'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Qt MacOS
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        host: mac
+        target: desktop
+        version: ${{ env.QT_VERSION }}
+        dir: "${{ github.workspace }}/qt"
+        install-deps: "true"
+
+    - name: Configure CMake MacOS
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build MacOS
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
+
+    - name: Create MacOS Archive
+      uses: thedoctor0/zip-release@master
+      with: 
+        type: 'zip'
+        directory: ${{ github.workspace }}/build/out
+        filename: 'macos-release.zip'
+        exclusions: '*.git*'
 
     - name: Deploy MacOS Release 
-      if: matrix.os == 'macos-latest'
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/out/macos-release.zip 
+        artifacts: ${{ github.workspace }}/build/out/macos-release.zip

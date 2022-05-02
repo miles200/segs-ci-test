@@ -10,19 +10,12 @@ env:
   QT_WIN_TARGET_ARCHITECTURE:  "win64_msvc2019_64"
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: 'windows-latest'
     steps:
     - uses: actions/checkout@v3
-    
-# QT Installation 
 
     - name: Install Qt Windows
-      if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: windows
@@ -32,8 +25,20 @@ jobs:
         dir: "${{ github.workspace }}/qt"
         install-deps: "true"
 
+    - name: Configure CMake Windows
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build Windows
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
+
+  build-linux:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@v3
+
     - name: Install Qt Linux
-      if: matrix.os == 'ubuntu-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: linux
@@ -42,8 +47,22 @@ jobs:
         dir: "${{ github.workspace }}/qt"
         install-deps: "true"
 
+    - name: Configure CMake Linux
+      if: matrix.os == 'ubuntu-latest'
+      env:
+        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
+        CXX: "/usr/bin/clang++"
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
+
+  build-macos:
+    runs-on: 'macos-latest'
+    steps:
+    - uses: actions/checkout@v3
+
     - name: Install Qt MacOS
-      if: matrix.os == 'macos-latest'
       uses: jurplel/install-qt-action@v2.14.0
       with:
         host: mac
@@ -52,22 +71,10 @@ jobs:
         dir: "${{ github.workspace }}/qt"
         install-deps: "true"
 
-# Configure CMake
-
-    - name: Configure CMake Windows & MacOS
-      if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
+    - name: Configure CMake MacOS
       env:
         CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
       run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-
-    - name: Configure CMake Linux
-      if: matrix.os == 'ubuntu-latest'
-      env:
-        CMAKE_PREFIX_PATH: ${{ env.Qt5_Dir }}
-        CXX: "/usr/bin/clang++"
-      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-
-# Build
 
     - name: Build
       run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
