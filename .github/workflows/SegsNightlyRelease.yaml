@@ -19,7 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    permissions: write-all
+    permissions:
+      contents: write
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -115,7 +116,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/archive/windows-release.zip
+        artifacts: ${{ github.workspace }}/build/out/windows-release.zip
         
     - name: Deploy Linux Release 
       if: matrix.os == 'ubuntu-latest'
@@ -124,7 +125,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/archive/linux-release.zip 
+        artifacts: ${{ github.workspace }}/build/out/linux-release.zip 
 
     - name: Deploy MacOS Release 
       if: matrix.os == 'macos-latest'
@@ -133,4 +134,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: "true"
         tag: "nightly"
-        artifacts: ${{ github.workspace }}/build/archive/macos-release.zip 
+        artifacts: ${{ github.workspace }}/build/out/macos-release.zip 
